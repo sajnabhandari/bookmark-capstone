@@ -119,3 +119,47 @@
 - **What I changed before approving:** Nothing to change — the tests written in Task 10 already cover the full user journey.
 - **Verification:** 14 passed, 0 failed, 0.41 s. All routes return expected status codes; parse logic handles all edge cases; filter and search return correct subsets.
 - **One thing I learned:** A test suite written task-by-task stays proportionate — each test covers exactly one thing. Trying to write all tests at the end tends to produce either redundant mega-tests or gaps where features were "tested manually and seemed fine."
+
+---
+
+## AI Workflow
+
+**Planning lane:** I used Claude Code as the primary planning tool. Before writing any code I described the feature in one sentence and asked for a proposed approach. Claude surfaced trade-offs I wouldn't have thought to name — for example, suggesting query params (`?tag=`) over a dedicated `/tag/<name>` route, which keeps URLs bookmarkable with no extra code. That kind of web-idiom knowledge was faster to get from Claude than from a documentation search.
+
+**Executing lane:** Claude Code handled all the boilerplate: file scaffolding, Jinja2 template structure, pytest fixture setup. I reviewed every diff before approving. The moment where it clearly outperformed anything else was the test suite — 14 tests with correct edge-case coverage written in one pass, something that would have taken me 45 minutes to structure alone.
+
+**Polishing lane:** CSS was the clearest switch-tools moment. Claude's first instinct was to create a separate `bookmarks.py` module with a `TypedDict` class. I rejected it mid-task because CLAUDE.md explicitly says no class hierarchies, and a three-field shape doesn't earn its own file. I rerouted: keep the shape as an inline comment on the list in `app.py`. Claude adapted immediately once I gave the constraint.
+
+**Reviewing lane:** I read every generated file before it went into git. The constraint that caught the most was scope — Claude twice proposed more abstraction than the task needed (a separate module, a helper function for a two-liner). Pulling it back kept the codebase proportionate.
+
+---
+
+## Reflection
+
+**Where the agentic workflow let me ship more than I could alone**
+
+The honest answer is: almost everything that involves boilerplate and web conventions. Setting up Flask with correct template inheritance, writing a PRG-pattern POST handler, wiring up a pytest fixture with `yield` — I know these patterns exist, but I would have spent 20–30 minutes looking up the exact syntax for each one. Claude produced correct, idiomatic code for all of them on the first try. The CSS was the starkest example: ~130 lines of clean flexbox layout, card styles, and chip variants in one pass. That would have been an hour of MDN lookups and trial-and-error for me. Instead it took two minutes to review and approve.
+
+The other thing I couldn't have done alone in the time available: the test suite. Fourteen focused pytest tests, each covering exactly one behavior, with proper fixtures — written faster than I could have typed even if I already knew what to write.
+
+**Where I had to override Claude**
+
+Twice Claude proposed a separate `bookmarks.py` module. Both times I stopped it. The CLAUDE.md I wrote at the start says "no class hierarchies, no over-engineering" — but beyond the rule, I could see that a three-field dictionary does not need its own file. Claude doesn't have the taste judgment to know when a module boundary is load-bearing versus just added friction. I do, because I've read code where every tiny thing lives in its own file and it's exhausting to navigate. That override was mine to make.
+
+I also intervened on scope during the add-form task. Claude wanted to add URL validation (checking that the URL actually starts with `http`). That's reasonable in a production app — it's premature for a capstone with an in-memory store. The HTML `type="url"` input attribute handles the obvious case for free. I said no and moved on.
+
+**What this revealed about my judgment and gaps**
+
+This is the question I've been thinking about most. What I found is that my judgment is better at the "should we do this" level than the "how do we do this" level — and that gap is real and worth naming.
+
+I could tell when Claude was over-engineering. I could tell when a test was redundant. I could read a diff and spot that a helper function was adding indirection without adding clarity. That's pattern recognition from reading code and thinking about design, and it held up throughout this project.
+
+Where I was lost: web conventions I haven't internalized. I didn't know off the top of my head that the Post/Redirect/Get pattern exists and why it matters (duplicate submissions on refresh). I didn't know that `{% for %}...{% else %}` is a Jinja2 feature. I didn't know that `follow_redirects=True` is needed in Flask's test client for POST tests. I learned all of these during this project, but I learned them by reading what Claude produced and then understanding why — which is a slower and less reliable way to build mental models than learning them as explicit concepts first.
+
+The gap that concerns me most: I can review code I didn't write, but I'm not yet fast enough to write idiomatic Python web code from scratch at a real pace. This project exposed that clearly. I was good at direction and review. I was slow at original production. That's the gap to close over the next year.
+
+**How I'll bring this into my internship**
+
+The first thing I'll do on day one is read the codebase before I ask Claude to touch it. This project worked because CLAUDE.md existed before any feature code — it gave Claude the constraints it needed to make good decisions. In a real codebase I don't own, I need to understand those constraints first: what's idiomatic here, what's off-limits, what patterns does this team reach for. That's a week-one task before I use any AI assistance on production code.
+
+After that: I'll use Claude for first drafts of boilerplate-heavy work (tests, config, scaffolding), review every diff myself, and keep a short log of the decisions I made and why. Not because anyone asked me to, but because this project showed me that the decisions are the thing worth keeping. The code will change. The reasoning survives.
