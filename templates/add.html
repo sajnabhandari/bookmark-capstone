@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Add Bookmark</h2>
+<form method="post" action="{{ url_for('add') }}">
+  <label for="title">Title</label>
+  <input type="text" id="title" name="title" required placeholder="Flask Documentation" />
+
+  <label for="url">URL</label>
+  <input type="url" id="url" name="url" required placeholder="https://example.com" />
+
+  <label for="tags">Tags <span class="hint">(comma-separated)</span></label>
+  <input type="text" id="tags" name="tags" placeholder="python, web, reference" />
+
+  <button type="submit">Save Bookmark</button>
+  <a href="{{ url_for('index') }}">Cancel</a>
+</form>
+
+{% endblock %}

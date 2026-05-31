@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="toolbar">
+  <a href="{{ url_for('add') }}" class="btn-add">+ Add Bookmark</a>
+
+  <form method="get" action="{{ url_for('index') }}" class="search-form">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search titles and URLs…" />
+    <button type="submit">Search</button>
+    {% if query or tag_filter %}
+    <a href="{{ url_for('index') }}" class="clear">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+{% if all_tags %}
+<div class="tag-filter-bar">
+  <span>Filter by tag:</span>
+  {% for t in all_tags %}
+  <a href="{{ url_for('index', tag=t) }}"
+     class="tag {% if t == tag_filter %}active{% endif %}">{{ t }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<ul class="bookmark-list">
+  {% for bm in bookmarks %}
+  <li class="bookmark-item">
+    <div class="bm-title"><a href="{{ bm.url }}" target="_blank">{{ bm.title }}</a></div>
+    <div class="bm-url">{{ bm.url }}</div>
+    {% if bm.tags %}
+    <div class="bm-tags">
+      {% for tag in bm.tags %}
+      <a href="{{ url_for('index', tag=tag) }}" class="tag">{{ tag }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </li>
+  {% else %}
+  <li class="empty">No bookmarks match.</li>
+  {% endfor %}
+</ul>
+
+{% endblock %}
