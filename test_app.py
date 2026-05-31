@@ -73,3 +73,23 @@ def test_search_url(client):
 def test_search_no_match(client):
     r = client.get("/?q=zzznomatch")
     assert b"No bookmarks match" in r.data
+
+
+# --- student-written tests: key invariants ---
+
+def test_bookmark_count_increases_by_one(client):
+    # Invariant: every valid POST to /add adds exactly one bookmark, no more.
+    from app import bookmarks
+    before = len(bookmarks)
+    client.post("/add", data={"title": "Count Test", "url": "https://count.io", "tags": "x"})
+    assert len(bookmarks) == before + 1
+
+def test_tag_and_search_compose(client):
+    # Invariant: filtering by tag AND search query together narrows correctly.
+    # Only the bookmark matching BOTH conditions should appear.
+    client.post("/add", data={"title": "CSS Tricks", "url": "https://css-tricks.com", "tags": "css, web"})
+    client.post("/add", data={"title": "CSS Zen Garden", "url": "https://csszengarden.com", "tags": "css, design"})
+    r = client.get("/?tag=css&q=tricks")
+    html = r.data.decode()
+    assert "CSS Tricks" in html       # matches both tag and query
+    assert "CSS Zen Garden" not in html  # has the tag but fails the query
